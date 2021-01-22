@@ -1,11 +1,10 @@
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -13,7 +12,6 @@ import java.net.URLConnection;
  * 21.01.2021
  */
 public class HtmlParser {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws IOException {
         if (args.length != 0){
@@ -34,15 +32,17 @@ public class HtmlParser {
             }catch (NumberFormatException exception){
                 System.out.println("Start или end не целое число");
             }
+
             System.out.println("address" + "\t" + "city" + "\t" + "email" + "\t" + "firstName" + "\t" + "lastName" + "\t" + "phone" + "\t");
             for (int i = start; i < end +1; i++){
-                JsonNode root = objectMapper.readTree(parseToJsonString(getTextFromUrl(args[0], i, timeout)));
-                System.out.print(root.findValue("address").asText() + "\t");
-                System.out.print(root.findValue("city").asText() + "\t");
-                System.out.print(root.findValue("email").asText() + "\t");
-                System.out.print(root.findValue("firstName").asText() + "\t");
-                System.out.print(root.findValue("lastName").asText() + "\t");
-                System.out.print(root.findValue("phone").asText() + "\n");
+                Map<String, String> result = parseString(getTextFromUrl(args[0], i, timeout));
+ //               System.out.println(parseString(getTextFromUrl(args[0], i, timeout)));
+                System.out.print(result.get("address") + "\t");
+                System.out.print(result.get("city") + "\t");
+                System.out.print(result.get("email") + "\t");
+                System.out.print(result.get("firstName") + "\t");
+                System.out.print(result.get("lastName") + "\t");
+                System.out.print(result.get("phone") + "\n");
             }
 
 
@@ -52,7 +52,7 @@ public class HtmlParser {
     private static String getTextFromUrl(String urlString, int param, int timeout){
         StringBuilder response = new StringBuilder();
         try {
-            URL url = new URL(urlString + "=" + param);
+            URL url = new URL(urlString  + param);
             URLConnection connection = url.openConnection();
             connection.setConnectTimeout(timeout);
             BufferedReader in = new BufferedReader(
@@ -70,11 +70,15 @@ public class HtmlParser {
         return response.toString();
     }
 
-    private static String parseToJsonString(String value){
-        int t = value.indexOf("{");
-        int t1 = value.lastIndexOf("}");
-        String st = value.substring(t, t1 + 1);
-        int t3 = st.lastIndexOf("{");
-        return st.substring(t3);
+    private static Map<String, String> parseString(String value){
+        int t1 = value.lastIndexOf("{");
+        int t2 = value.lastIndexOf("}");
+        String[] params = value.substring(t1+1, t2).split(",");
+        Map<String, String> mapParams = new HashMap<>();
+        for(int i = 0; i < params.length; i++){
+          String[] strings =  params[i].split(":");
+          mapParams.put(strings[0].substring(1,strings[0].length()-1), strings[1].substring(1,strings[1].length()-1));
+        }
+        return mapParams;
     }
 }
