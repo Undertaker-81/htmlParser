@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class HtmlParser {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         if (args.length != 0){
             int timeout = 500;
             if (args.length == 4){
@@ -32,29 +32,34 @@ public class HtmlParser {
             }catch (NumberFormatException exception){
                 System.out.println("Start или end не целое число");
             }
-
+            String url = args[0];
+            if (!url.contains("=")){
+                url = url + "=";
+            }
             System.out.println("address" + "\t" + "city" + "\t" + "email" + "\t" + "firstName" + "\t" + "lastName" + "\t" + "phone" + "\t");
             for (int i = start; i < end +1; i++){
-                Map<String, String> result = parseString(getTextFromUrl(args[0], i, timeout));
+                Map<String, String> result = parseString(getTextFromUrl(url, i));
  //               System.out.println(parseString(getTextFromUrl(args[0], i, timeout)));
-                System.out.print(result.get("address") + "\t");
-                System.out.print(result.get("city") + "\t");
-                System.out.print(result.get("email") + "\t");
-                System.out.print(result.get("firstName") + "\t");
-                System.out.print(result.get("lastName") + "\t");
+                System.out.print(result.get("address") + ",");
+                System.out.print(result.get("city") + ",");
+                System.out.print(result.get("email") + ",");
+                System.out.print(result.get("firstName") + ",");
+                System.out.print(result.get("lastName") + ",");
                 System.out.print(result.get("phone") + "\n");
+                Thread.sleep(timeout);
             }
-
-
+        }else {
+            System.out.println("usage: java -jar jarfile URL star end [timeout]");
         }
+
     }
      //https://stackoverflow.com/questions/4328711/read-url-to-string-in-few-lines-of-java-code
-    private static String getTextFromUrl(String urlString, int param, int timeout){
+    private static String getTextFromUrl(String urlString, int param){
         StringBuilder response = new StringBuilder();
         try {
             URL url = new URL(urlString  + param);
             URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(timeout);
+            connection.setConnectTimeout(500);
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(
                             connection.getInputStream()));
