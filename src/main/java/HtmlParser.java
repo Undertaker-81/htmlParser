@@ -5,6 +5,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -36,16 +38,16 @@ public class HtmlParser {
             if (!url.contains("=")){
                 url = url + "=";
             }
-            System.out.println("address" + "\t" + "city" + "\t" + "email" + "\t" + "firstName" + "\t" + "lastName" + "\t" + "phone" + "\t");
+            System.out.println("address" + "," + "city" + "," + "email" + "," + "firstName" + "," + "lastName" + "," + "phone" + ",");
             for (int i = start; i < end +1; i++){
-                Map<String, String> result = parseString(getTextFromUrl(url, i));
+                Map<String, String> result = parseString(getTextFromUrl(url, i).replace("{",""));
  //               System.out.println(parseString(getTextFromUrl(args[0], i, timeout)));
                 System.out.print(result.get("address") + ",");
                 System.out.print(result.get("city") + ",");
                 System.out.print(result.get("email") + ",");
                 System.out.print(result.get("firstName") + ",");
                 System.out.print(result.get("lastName") + ",");
-                System.out.print(result.get("phone") + "\n");
+                System.out.print(result.get("phone") + ",\n");
                 Thread.sleep(timeout);
             }
         }else {
@@ -76,14 +78,15 @@ public class HtmlParser {
     }
 
     private static Map<String, String> parseString(String value){
-        int t1 = value.lastIndexOf("{");
-        int t2 = value.lastIndexOf("}");
-        String[] params = value.substring(t1+1, t2).split(",");
+
+        Pattern pattern = Pattern.compile("\"(?<field>.+?)\":\"(?<value>.*?)\"");
+        Matcher matcher = pattern.matcher(value);
         Map<String, String> mapParams = new HashMap<>();
-        for(int i = 0; i < params.length; i++){
-          String[] strings =  params[i].split(":");
-          mapParams.put(strings[0].substring(1,strings[0].length()-1), strings[1].substring(1,strings[1].length()-1));
+        while(matcher.find()) {
+         mapParams.put(matcher.group("field"),matcher.group("value") );
+
         }
         return mapParams;
+
     }
 }
